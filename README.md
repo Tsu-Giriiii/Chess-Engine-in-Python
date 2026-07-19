@@ -3,7 +3,7 @@
 Building a chess engine from scratch in Python using Pygame. The goal of this project is to understand how a chess engine works internally—from board representation and move generation to game rules, search algorithms, and AI.
 
 <p align="center">
-  <img src="assets/demo.gif" alt="Chess Engine Demo" width="600">
+  <img src="assets/demo_v1.gif" alt="Chess Engine Demo" width="600">
 </p>
 ---
 
@@ -45,7 +45,7 @@ Example:
 - Loaded and scaled chess piece sprites dynamically.
 - Rendered the complete board every frame.
 
-![Board Representation](assets/Board.png)
+### ![Board](assets/Board.png)
 ---
 
 ###  User Interaction
