@@ -5,6 +5,7 @@ Building a chess engine from scratch in Python using Pygame. The goal of this pr
 <p align="center">
   <img src="assets/demo_v1.gif" alt="Chess Engine Demo" width="600">
 </p>
+
 ---
 
 ## Features Completed
