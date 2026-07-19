@@ -28,7 +28,6 @@ class GameState:
         self.board[move.startrow][move.startcol] = '--' # make the space piece just left empty
         self.board[move.endrow][move.endcol] = move.piece_moved
         self.moveLog.append(move)               # maintain move history (to undo)
-        print(self.moveLog)
         self.whiteToMove = not self.whiteToMove   #swap turns after a move
         
 
