@@ -28,7 +28,13 @@ def main():
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     p.display.update()
+    
     gs = ChessEngine.GameState()
+    validMoves = gs.all_valid_moves()
+    #valid moves is going to be a very expensive operations so we don't wanna call it every frame
+    move_made = False   #flag variable when user makes a move
+    
+    
     print(gs.board)
     Load_Images()   #Only do this once before the while loop
     running = True
@@ -57,11 +63,25 @@ def main():
                 if len(player_clicks)==2:       # after 2nd click
                     move = ChessEngine.Move(player_clicks[0],player_clicks[1],gs.board)
                     print(move.Get_chessNotation())
-                    gs.make_move(move)
+                    
+                    #check if the move is valid one
+                    if move in validMoves:
+                        gs.make_move(move)
+                        move_made = True
                     sq_selected = ()    #reset user clicks
                     player_clicks = []
+            
+            #Key press events
+            if e.type == p.KEYDOWN:
+                if e.key== p.K_z:       #Undo when 'z' when z is pressed
+                    gs.undo_move()
+                    move_made = True
                     
-                
+        
+        if move_made:
+            validMoves = gs.all_possible_moves()
+            move_made = False
+            
         draw_Gamestate(screen,gs)
         clock.tick(MAX_FPS)
         p.display.flip()
