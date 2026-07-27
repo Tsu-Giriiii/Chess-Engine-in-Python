@@ -11,7 +11,7 @@ class GameState:
             ["bR","bN","bB","bQ","bK","bB","bN","bR"],
             ["bp","bp","bp","bp","bp","bp","bp","bp"],
             ["--","--","--","--","--","--","--","--"],
-            ["--","--","--","wR","--","--","--","--"],
+            ["--","--","--","--","--","--","--","--"],
             ["--","--","--","--","--","--","--","--"],
             ["--","--","--","--","--","--","--","--"],
             ["wp","wp","wp","wp","wp","wp","wp","wp"],
@@ -133,24 +133,72 @@ class GameState:
                     break
                     
     
-    #Get all the Knight moves for the Knight located at row,col and add these into the move list                    
-    def getKnightMoves(self,r,c,moves):
-        pass   
-    
     #Get all the Bishop moves for the Bishop located at row,col and add these into the move list                    
     def getBishopMoves(self,r,c,moves):
-        pass   
+        direction = ((1,1),(1,-1),(-1,1),(-1,-1))
+        enemy_color = 'b' if self.whiteToMove else 'w'
+        
+        for d in direction:
+            for i in range(1,8):
+                endRow = r+d[0]*i
+                endCol = c+d[1]*i
+                
+                if 0<= endRow<8 and 0<=endCol<8:  #move should be on board
+                    endPiece = self.board[endRow][endCol]
+                    if endPiece == "--":
+                        moves.append(Move((r,c),(endRow,endCol),self.board))
+                    elif endPiece[0]==enemy_color:
+                        moves.append(Move((r,c),(endRow,endCol),self.board))
+                        break
+                    else:   #Friendly piece
+                        break
+                else:       #off board
+                    break
+        
+         
+    
+    #Get all the Knight moves for the Knight located at row,col and add these into the move list                    
+    def getKnightMoves(self,r,c,moves):
+        direction = ((1,2),(-1,2),(-1,-2),(1,-2),(2,-1),(2,1),(-2,1),(-2,-1))
+        enemy_color = 'b' if self.whiteToMove else 'w'
+        
+        for d in direction:
+            endRow = r+d[0]
+            endCol = c+d[1]
+            
+            if 0<= endRow<8 and 0<=endCol<8:  #move should be on board
+                endPiece = self.board[endRow][endCol]
+                if endPiece == "--":
+                    moves.append(Move((r,c),(endRow,endCol),self.board))
+                elif endPiece[0]==enemy_color:
+                    moves.append(Move((r,c),(endRow,endCol),self.board))
+            
               
     #Get all the King moves for the King located at row,col and add these into the move list                    
     def getKingMoves(self,r,c,moves):
-        pass   
+        direction = ((-1,0),(1,0),(0,1),(0,-1),(1,1),(1,-1),(-1,1),(-1,-1))
+        enemy_color = 'b' if self.whiteToMove else 'w'
+        
+        for d in direction:
+            endRow = r+d[0]
+            endCol = c+d[1]
+            
+            if 0<= endRow<8 and 0<=endCol<8:  #move should be on board
+                endPiece = self.board[endRow][endCol]
+                if endPiece == "--":
+                    moves.append(Move((r,c),(endRow,endCol),self.board))
+                elif endPiece[0]==enemy_color:
+                    moves.append(Move((r,c),(endRow,endCol),self.board))
+                    break
+                else:   #Friendly piece
+                    break
+            else:       #off board
+                break  
     
     #Get all the Queen moves for the Queen located at row,col and add these into the move list                    
     def getQueenMoves(self,r,c,moves):
-        pass   
-              
-                
-        
+        self.getRookMoves(r,c,moves)
+        self.getBishopMoves(r,c,moves)
 
 class Move:
     
