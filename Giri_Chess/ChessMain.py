@@ -81,7 +81,7 @@ def main():
                     
         
         if move_made:
-            validMoves = gs.all_possible_moves()
+            validMoves = gs.all_valid_moves()
             move_made = False
             
         draw_Gamestate(screen,gs)
