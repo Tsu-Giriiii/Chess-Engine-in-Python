@@ -55,15 +55,16 @@ Example:
   1. Select the piece.
   2. Select the destination square.
 - Clicking the same square twice deselects the piece.
+- pressing 'Z' key undoes the move played last
 
 ---
 
 ###  Move Execution
 - Created a `Move` class to represent every chess move.
 - Implemented move execution by updating the board state.
-- Added move history to support undo functionality.
+- Mainted a move log for move history  and undo functionality.
 - Implemented undo by restoring the previous board state.
-- Generated standard coordinate notation (e.g., `e2e4`) for every move.
+- Generated coordinate notation (e.g., `e2e4`) for every move.
 
 ---
 
@@ -78,10 +79,33 @@ Example:
   - King
 - Generated legal moves based on the current board state and the side to move.
 - Used a dispatch-table (`moveFunctions`) to dynamically call the appropriate move generator for each piece.
-- Added move validation so only generated legal moves can be executed.
-- Optimized move generation by recalculating legal moves only after a move is made or undone.
+- Implemented legal move filtering to prevent moves that leave the player's king in check.
+- Added support for pinned pieces and double-check situations.
 
 ---
+
+### Check,Checkmate and Stalemate Detection
+- Implemented check detection by identifying attacking pieces and attack directions.
+- Implemented detection of pinned pieces.
+- Implemented single-check and double-check handling.
+- Implemented indrect checkmate detection and stalemate detection. (Valid moves = 0)
+
+### Check Detection Optimization:
+- Two approaches were implemented during development
+
+  #### Naive Approach
+  - Determines whether the king is in check by generating the opponent's possible moves.
+  - Straightforward and useful as a baseline implementation.
+
+  #### Optimized Approach
+  - Directly examines potential attacking pieces, pins and attack directions.
+  - Avoids generating the complete opponent move list for every check evaluation.
+  - Used by the main engine to reduce the computational cost of repeated move validation.
+
+The naive implementation is preserved separately as a development/reference version while the optimized implementation is used by the main engine.
+
+---
+
 
 ## Current Status
 
@@ -101,9 +125,9 @@ Example:
 
 ✔ Move validation framework
 
-🚧 Check detection
+✔ Check detection
 
-🚧 Checkmate / Stalemate
+✔ Checkmate / Stalemate
 
 🚧 Castling
 
@@ -111,16 +135,15 @@ Example:
 
 🚧 Pawn Promotion
 
+🚧 UI improvements for legal moves and check states
+
 ---
 
 ## Planned Features
 
-- Check and checkmate detection
 - Castling
 - En passant
 - Pawn promotion
-- Undo move functionality
-- Move validation
 - Minimax search with Alpha-Beta pruning
 - Board evaluation function
 - AI opponent

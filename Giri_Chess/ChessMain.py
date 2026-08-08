@@ -83,6 +83,11 @@ def main():
         if move_made:
             validMoves = gs.all_valid_moves_advanced()
             move_made = False
+            if len(validMoves) == 0:
+                if gs.inCheck:
+                    print("CHECKMATE!")
+                else:
+                    print("STALEMATE!")
             
         draw_Gamestate(screen,gs)
         clock.tick(MAX_FPS)
