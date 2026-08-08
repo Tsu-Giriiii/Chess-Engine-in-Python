@@ -30,7 +30,7 @@ def main():
     p.display.update()
     
     gs = ChessEngine.GameState()
-    validMoves = gs.all_valid_moves()
+    validMoves = gs.all_valid_moves_advanced()
     #valid moves is going to be a very expensive operations so we don't wanna call it every frame
     move_made = False   #flag variable when user makes a move
     
@@ -81,7 +81,7 @@ def main():
                     
         
         if move_made:
-            validMoves = gs.all_valid_moves()
+            validMoves = gs.all_valid_moves_advanced()
             move_made = False
             
         draw_Gamestate(screen,gs)
