@@ -65,12 +65,13 @@ def main():
                     print(move.Get_chessNotation())
                     
                     #check if the move is valid one
-                    if move in validMoves:
-                        gs.make_move(move)
-                        move_made = True
-                        sq_selected = ()    #reset user clicks
-                        player_clicks = []
-                    else:
+                    for i in range(len(validMoves)):
+                        if move == validMoves[i]:
+                            gs.make_move(validMoves[i])
+                            move_made = True
+                            sq_selected = ()    #reset user clicks
+                            player_clicks = []
+                    if not move_made:
                         player_clicks = [sq_selected]
             
             #Key press events
