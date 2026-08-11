@@ -58,7 +58,8 @@ class GameState:
         
         #pawn promotion (Only queen promotion)
         if move.is_pawn_promotion:
-            self.board[move.endrow][move.endcol] = move.piece_moved[0]+'Q'
+            Promoted_piece = input("What piece to promote to? [Q,N,B,R]")
+            self.board[move.endrow][move.endcol] = move.piece_moved[0]+Promoted_piece
         
         #En-passent
         if move.is_enpassent:
