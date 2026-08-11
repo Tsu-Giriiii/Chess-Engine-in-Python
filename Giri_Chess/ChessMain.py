@@ -67,7 +67,7 @@ def main():
                     #check if the move is valid one
                     for i in range(len(validMoves)):
                         if move == validMoves[i]:
-                            gs.make_move(move)
+                            gs.make_move(validMoves[i])
                             move_made = True
                             sq_selected = ()    #reset user clicks
                             player_clicks = []

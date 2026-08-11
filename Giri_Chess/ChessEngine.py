@@ -40,8 +40,9 @@ class GameState:
         self.pins = []
         self.checks = []
         
+        #En-passent
+        self.enpassent_possible = () #Records the squares where enpassent is possible
         
-    
     # Works only for normal moves: (Not castling,En passent, Pawn Promotion)
     def make_move(self,move):
         self.board[move.startrow][move.startcol] = '--' # make the space piece just left empty
@@ -54,6 +55,21 @@ class GameState:
             self.whiteKingLocation = (move.endrow,move.endcol)
         elif move.piece_moved == 'bK':
             self.blackKingLocation = (move.endrow,move.endcol)
+        
+        #pawn promotion (Only queen promotion)
+        if move.is_pawn_promotion:
+            self.board[move.endrow][move.endcol] = move.piece_moved[0]+'Q'
+        
+        #En-passent
+        if move.is_enpassent:
+            self.board[move.startrow][move.endcol] = '--'  #Capturing the pawn
+        
+        #update en-passent variable
+        if move.piece_moved[1] =='p' and abs(move.startrow - move.endrow)==2:   #check only 2 square advances
+            self.enpassent_possible = ((move.startrow+move.endrow)//2,move.startcol)
+        else:
+            self.enpassent_possible = ()
+            
     
     def undo_move(self):
         if len(self.moveLog)!=0: #make sure movLog is not 0
@@ -68,6 +84,16 @@ class GameState:
             elif move.piece_moved == 'bK':
                 self.blackKingLocation = (move.startrow,move.startcol)
             
+            #undo enpassent
+            if move.is_enpassent:
+                self.board[move.endrow][move.endcol]= '--' #Make the landing square blank
+                self.board[move.startrow][move.endcol] = move.piece_captured
+                self.enpassent_possible = (move.endrow,move.endcol)
+            
+            #undo the pawn advance
+            if move.piece_moved[1] =='p' and abs(move.startrow - move.endrow)==2:
+                self.enpassent_possible = ()
+                   
         else:
             return
     
@@ -107,6 +133,7 @@ class GameState:
         else:
             self.checkmate = False
             self.stalemate = False
+        
             
         return moves
         
@@ -299,13 +326,19 @@ class GameState:
             
             if c-1>=0:
                 if self.board[r-1][c-1][0]=='b':    #capturable piece on left
-                    if not piecePinned or pinDirection==(-1,-1):
-                        moves.append(Move((r,c),(r-1,c-1),self.board))
+                    moves.append(Move((r,c),(r-1,c-1),self.board))
+                
+                # En passent
+                elif (r-1,c-1)==self.enpassent_possible:
+                    moves.append(Move((r,c),(r-1,c-1),self.board,enpassent_move=True))
             
             if c+1<=7:
                 if self.board[r-1][c+1][0]=='b':    #capturable piece on right
-                    if not piecePinned or pinDirection ==(-1,1):
-                        moves.append(Move((r,c),(r-1,c+1),self.board))        
+                    moves.append(Move((r,c),(r-1,c+1),self.board))
+                
+                # En passent
+                elif (r-1,c+1)==self.enpassent_possible:
+                    moves.append(Move((r,c),(r-1,c+1),self.board,enpassent_move=True))    
                     
         
         else:                           #Black pawn moves
@@ -321,12 +354,18 @@ class GameState:
                     if not piecePinned or pinDirection == (1,-1):
                         moves.append(Move((r,c),(r+1,c+1),self.board))
                 
+                # En passent
+                elif (r+1,c+1)==self.enpassent_possible:
+                    moves.append(Move((r,c),(r+1,c+1),self.board,enpassent_move=True))
+                
             if (c-1>=0):
                 if self.board[r+1][c-1][0]=='w':
-                    if not piecePinned or pinDirection == (1,1):
-                        moves.append(Move((r,c),(r+1,c-1),self.board))
+                    moves.append(Move((r,c),(r+1,c-1),self.board))
+                
+                # En passent
+                elif (r+1,c-1)==self.enpassent_possible:
+                    moves.append(Move((r,c),(r+1,c-1),self.board,enpassent_move=True))
                     
-        #add pawn promotions later
                  
     #Get all the Rook moves for the Rook located at row,col and add these into the move list                    
     def getRookMoves(self,r,c,moves):
@@ -470,13 +509,26 @@ class Move:
     colstofiles = {0:'a',1:'b',2:'c',3:'d',4:'e',5:'f',6:'g',7:'h'}
     
     
-    def __init__(self,startsq,endsq,board):
+    def __init__(self,startsq,endsq,board,enpassent_move = False):
         self.startrow = startsq[0]
         self.startcol = startsq[1]
         self.endrow = endsq [0]
         self.endcol = endsq[1]
         self.piece_moved = board[self.startrow][self.startcol]
         self.piece_captured = board[self.endrow][self.endcol]      #this may even capture empty sqaures in which case nothing is captured
+        
+        
+        #Pawn promotion
+        self.is_pawn_promotion = False
+        if (self.piece_moved == 'wp' and self.endrow==0) or (self.piece_moved=='bp' and self.endrow==7):
+            self.is_pawn_promotion = True
+        self.promotion_choice = 'Q'
+        
+        #En-passent
+        self.is_enpassent = enpassent_move
+        if self.is_enpassent:
+            self.piece_captured = 'wp' if self.piece_moved =='bp' else 'bp'
+        
         
         #for testing hard coded moves: Unique number with formula given below
         self.moveID = self.startrow*1000+self.startcol*100+self.endrow*10+self.endcol
@@ -500,3 +552,7 @@ class Move:
     
     def convertRankFile(self,r,c):
         return self.colstofiles[c]+self.rowstoranks[r]
+
+
+#git switch main
+#git stash pop
