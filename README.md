@@ -66,17 +66,18 @@ Example:
 - Maintained a move log for move history and undo functionality.
 - Implemented undo by restoring the previous board state.
 - Generated coordinate notation (e.g., `e2e4`) for every move.
-- Added special-move handling for en passant and pawn promotion.
+- Added special-move handling for en passant, pawn promotion and castling.
 
 
 ---
 
 ### Special Chess Rules
 
-- Implemented **En Passant** pawn captures.
+- Implemented **En Passant** pawn captures with appropriate game-state tracking.
 - Implemented **Pawn Promotion** when a pawn reaches the opposite end of the board.
 - Added terminal-based promotion piece selection.
-- Castling is currently under development.
+- UI-based promotion selection is planned as part of the upcoming UI improvements.
+- Implemented **Castling** with dedicated castling-rights tracking and validation of all required conditions.
 
 ---
 
@@ -89,10 +90,12 @@ Example:
   - Rook
   - Queen
   - King
-- Generated legal moves based on the current board state and the side to move.
-- Used a dispatch-table (`moveFunctions`) to dynamically call the appropriate move generator for each piece.
+- Implemented piece-wise move generation for all six chess pieces.
+- Generated legal moves based on the current board state and side to move.
+- Used a dispatch table (`moveFunctions`) to dynamically invoke piece-specific move generators.
 - Implemented legal move filtering to prevent moves that leave the player's king in check.
 - Added support for pinned pieces and double-check situations.
+- Integrated special-move validation for castling, en passant, and pawn promotion.
 
 ---
 
@@ -148,19 +151,20 @@ The naive implementation is preserved separately as a development/reference bran
 
 ✔ Pawn Promotion
 
-🚧 Castling
+✔ Castling
 
 🚧 UI improvements for legal moves and check states
+
+🚧 UI-based pawn promotion selection
 
 ---
 
 ## Planned Features
 
-- Castling
 - UI improvements for legal move and check-state visualization
 - UI-based pawn promotion selection
-- Minimax search with Alpha-Beta pruning
 - Board evaluation function
+- Minimax search with Alpha-Beta pruning
 - AI opponent
 - Move ordering and search optimizations
 - PGN/FEN support
