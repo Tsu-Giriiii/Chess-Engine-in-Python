@@ -62,12 +62,13 @@ def main():
                     player_clicks.append(sq_selected)
                 if len(player_clicks)==2:       # after 2nd click
                     move = ChessEngine.Move(player_clicks[0],player_clicks[1],gs.board)
-                    print(move.Get_chessNotation())
+                    
                     
                     #check if the move is valid one
                     for i in range(len(validMoves)):
                         if move == validMoves[i]:
                             gs.make_move(validMoves[i])
+                            print(move.Get_chessNotation())
                             move_made = True
                             sq_selected = ()    #reset user clicks
                             player_clicks = []
@@ -84,7 +85,11 @@ def main():
         if move_made:
             validMoves = gs.all_valid_moves()
             move_made = False
-            
+            if len(validMoves) == 0:
+                if gs.in_check():
+                    print("CHECKMATE!")
+                else:
+                    print("STALEMATE!")
         draw_Gamestate(screen,gs)
         clock.tick(MAX_FPS)
         p.display.flip()
