@@ -83,6 +83,7 @@ def main():
                     
         
         if move_made:
+            move_animation(gs.moveLog[-1],screen,gs.board,clock)
             validMoves = gs.all_valid_moves_advanced()
             move_made = False
             if len(validMoves) == 0:
@@ -91,16 +92,47 @@ def main():
                 else:
                     print("STALEMATE!")
             
-        draw_Gamestate(screen,gs)
+        draw_Gamestate(screen,gs,validMoves,sq_selected)
         clock.tick(MAX_FPS)
         p.display.flip()
-        
+
+
+"""
+Highlight selected piece and squares it can move to
+"""
+def highlight_Squares(screen,gs,validMoves,sq_selected):
+    if sq_selected!=():
+        r,c = sq_selected
+        if gs.board[r][c][0] == ('w' if gs.whiteToMove else 'b'):   #only current players pieces and moves can be highlighted
+            #highlight the selected square
+            s = p.Surface((SQ_SIZE,SQ_SIZE))
+            s.set_alpha(100)    #transparency value 0-> transparent, 255-> opaque
+            s.fill(p.Color('blue'))
+            screen.blit(s,(c*SQ_SIZE,r*SQ_SIZE))
+            
+            #move highlights from that square
+            s.fill(p.Color('yellow'))
+            for move in validMoves:
+                if (move.startrow, move.startcol) == sq_selected:
+                    screen.blit(s,(move.endcol*SQ_SIZE,move.endrow*SQ_SIZE))
+    
+    #highlight checks
+    s = p.Surface((SQ_SIZE,SQ_SIZE))
+    s.set_alpha(150)    #transparency value 0-> transparent, 255-> opaque     
+    s.fill(p.Color('red'))
+    if gs.inCheck and gs.whiteToMove:
+        screen.blit(s,(gs.whiteKingLocation[1]*SQ_SIZE,gs.whiteKingLocation[0]*SQ_SIZE))
+    elif gs.inCheck and not gs.whiteToMove:
+        screen.blit(s,(gs.blackKingLocation[1]*SQ_SIZE,gs.blackKingLocation[0]*SQ_SIZE))        
+                
+                    
 """
 Responsible for graphics in used and displayed in the game
 """
-def draw_Gamestate(screen,gs):
+def draw_Gamestate(screen,gs,validMoves,sq_selected):
     draw_Board(screen)              #To draw the squares on the board
     #add in piece highlighting and move suggestions
+    highlight_Squares(screen,gs,validMoves,sq_selected)
     draw_Pieces(screen,gs.board)    #draw the pieces on top of the Board
  
 
@@ -114,7 +146,7 @@ def draw_Board(screen):
             p.draw.rect(screen,[255,255,200],[i,j,SQ_SIZE,SQ_SIZE])
             p.draw.rect(screen,[50,150,50],[i,j-64,SQ_SIZE,SQ_SIZE])
             p.draw.rect(screen,[50,150,50],[i-64,j,SQ_SIZE,SQ_SIZE])'''
-    
+    global colors
     colors = [[255,255,200],[50,150,50]]
     for r in range(DIMENSIONS):
         for c in range(DIMENSIONS):
@@ -147,6 +179,37 @@ def draw_Pieces(screen,board):
     for c in range(DIMENSIONS):
         files = font.render(s[c],True,[150,150,150])
         screen.blit(files,[c*SQ_SIZE+54,WIDTH-18])
+
+"""
+Function for animating moves
+"""
+def move_animation(move,screen,board,clock):
+    global colors
+    dR = move.endrow - move.startrow
+    dC = move.endcol - move.startcol
+    
+    framesPerCount = 2 #speed to the animation is dependent on this variable
+    frameCount = (abs(dR)+abs(dC))*framesPerCount
+    
+    for frame in range(frameCount+1):
+        r,c = (move.startrow + dR*frame/frameCount,move.startcol + dC*frame/frameCount)
+        draw_Board(screen)
+        draw_Pieces(screen,board)
+        
+        #erase the piece moved from the ending square
+        color = colors[(move.endrow+move.endcol)%2]
+        endSquare = p.Rect(move.endcol*SQ_SIZE, move.endrow*SQ_SIZE, SQ_SIZE,SQ_SIZE)
+        p.draw.rect(screen,color,endSquare)
+        
+        #draw the captured piece on the rectangle
+        if move.piece_moved == "--":
+            screen.blit(IMAGES[move.piece_captured],endSquare)
+        
+        #draw the moving piece
+        screen.blit(IMAGES[move.piece_moved],p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+        p.display.flip()
+        clock.tick(60)
+
 
 if __name__=="__main__":
     main()
