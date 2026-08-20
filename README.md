@@ -1,10 +1,18 @@
-# Chess-Engine-in-Python
+# GiriChess
 
-Building a chess engine from scratch in Python using Pygame. The project focuses on understanding chess engine internals, including board representation, move generation, rule validation, check detection, and eventually search and evaluation algorithms for an AI opponent.
+A chess engine and interactive chess application built from scratch in Python using Pygame. The project focuses on understanding chess engine internals, including board representation, move generation, rule validation, check detection, game-state management, and eventually search and evaluation algorithms for an AI opponent.
 
 <p align="center">
-  <img src="assets/demo_v2.gif" alt="Chess Engine Demo" width="600">
+  <img src="assets/demo_v3.gif" alt="Chess Engine Demo" width="600">
 </p>
+
+---
+
+## Tech Stack
+
+- **Language:** Python
+- **GUI:** Pygame
+- **Concepts:** Object-Oriented Programming, Game State Management, Move Generation, Rule Validation, Search Algorithms
 
 ---
 
@@ -40,22 +48,30 @@ Example:
 
 ---
 
-###  Graphical User Interface
+### Graphical User Interface
+
 - Built the chessboard using the **Pygame** library.
 - Implemented alternating light and dark squares.
 - Loaded and scaled chess piece sprites dynamically.
 - Rendered the complete board every frame.
+- Implemented visual highlighting for legal moves.
+- Added check-state highlighting to provide immediate visual feedback.
+- Added animated piece movement for completed moves.
 
-### ![Board](assets/Board.png)
+![Board](assets/Board.png)
+
 ---
 
-###  User Interaction
+### User Interaction
+
 - Added mouse-based piece selection.
 - Implemented two-click move input:
   1. Select the piece.
   2. Select the destination square.
-- Clicking the same square twice deselects the piece.
+- Clicking the same square twice deselects the selected piece.
 - Pressing `Z` undoes the last move.
+- Legal moves are highlighted when a piece is selected.
+- Check states are visually highlighted on the board.
 - Pawn promotion currently supports piece selection through terminal input.
 
 ---
@@ -90,7 +106,6 @@ Example:
   - Rook
   - Queen
   - King
-- Implemented piece-wise move generation for all six chess pieces.
 - Generated legal moves based on the current board state and side to move.
 - Used a dispatch table (`moveFunctions`) to dynamically invoke piece-specific move generators.
 - Implemented legal move filtering to prevent moves that leave the player's king in check.
@@ -153,7 +168,9 @@ The naive implementation is preserved separately as a development/reference bran
 
 ✔ Castling
 
-🚧 UI improvements for legal moves and check states
+✔ UI improvements for legal moves and check states
+
+✔ Piece animations for each move
 
 🚧 UI-based pawn promotion selection
 
@@ -161,7 +178,6 @@ The naive implementation is preserved separately as a development/reference bran
 
 ## Planned Features
 
-- UI improvements for legal move and check-state visualization
 - UI-based pawn promotion selection
 - Board evaluation function
 - Minimax search with Alpha-Beta pruning
