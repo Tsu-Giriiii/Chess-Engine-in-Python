@@ -32,10 +32,9 @@ class GameState:
         self.whiteKingLocation = (7,4)     
         self.blackKingLocation =  (0,4)
         
-        #Naive check-detection
-        '''#Checkmate & Stalemate
+        #Checkmate & Stalemate
         self.checkmate = False
-        self.stalemate = False'''
+        self.stalemate = False
         
         #Advanced check-detection
         self.inCheck =  False
@@ -66,8 +65,8 @@ class GameState:
         
         #pawn promotion (Only queen promotion)
         if move.is_pawn_promotion:
-            Promoted_piece = input("What piece to promote to? [Q,N,B,R]")
-            self.board[move.endrow][move.endcol] = move.piece_moved[0]+Promoted_piece
+    
+            self.board[move.endrow][move.endcol] = move.piece_moved[0]+move.promotion_choice
         
         #En-passent
         if move.is_enpassent:
@@ -154,13 +153,13 @@ class GameState:
             if move.startrow == 7:
                 if move.startcol==0:    #left rook
                     self.currentCastlingRights.wqs = False
-                elif move.startcol==0:  #right rook
+                elif move.startcol==7:  #right rook
                     self.currentCastlingRights.wks = False
         elif move.piece_moved == 'bR':
-            if move.startrow == 7:
+            if move.startrow == 0:
                 if move.startcol==0:    #left rook
                     self.currentCastlingRights.bqs = False
-                elif move.startcol==0:  #right rook
+                elif move.startcol==7:  #right rook
                     self.currentCastlingRights.bks = False
         #if a rook is captured
         if move.piece_captured == 'wR':
@@ -289,6 +288,17 @@ class GameState:
             self.getCastleMoves(self.whiteKingLocation[0],self.whiteKingLocation[1],moves,'b')
         else:
             self.getCastleMoves(self.blackKingLocation[0], self.blackKingLocation[1],moves,'w')
+        
+        #Check for Checkmate or Stalemate
+        if len(moves)== 0:  #check mate or stalemate
+            if self.inCheck:
+                self.checkmate = True
+            else:
+                self.stalemate = True
+        else:
+            self.checkmate = False
+            self.stalemate = False
+        
         return moves
     
     """
@@ -607,7 +617,7 @@ class GameState:
             return  #can't castle during a check
         if (self.whiteToMove and self.currentCastlingRights.wks) or (not self.whiteToMove and self.currentCastlingRights.bks):
             self.getKingsideCastleMoves(r,c,moves,ally_color)
-        if (self.whiteToMove and self.currentCastlingRights.wks) or (not self.whiteToMove and self.currentCastlingRights.bqs):
+        if (self.whiteToMove and self.currentCastlingRights.wqs) or (not self.whiteToMove and self.currentCastlingRights.bqs):
             self.getQueensideCastleMoves(r,c,moves,ally_color)
             
     
@@ -645,7 +655,7 @@ class Move:
     colstofiles = {0:'a',1:'b',2:'c',3:'d',4:'e',5:'f',6:'g',7:'h'}
     
     
-    def __init__(self,startsq,endsq,board,enpassent_move = False,iscastleMove = False):
+    def __init__(self,startsq,endsq,board,enpassent_move = False,iscastleMove = False,promoted_piece = None):
         self.startrow = startsq[0]
         self.startcol = startsq[1]
         self.endrow = endsq [0]
@@ -658,7 +668,7 @@ class Move:
         self.is_pawn_promotion = False
         if (self.piece_moved == 'wp' and self.endrow==0) or (self.piece_moved=='bp' and self.endrow==7):
             self.is_pawn_promotion = True
-        self.promotion_choice = 'Q'
+        self.promotion_choice = promoted_piece
         
         #En-passent
         self.is_enpassent = enpassent_move

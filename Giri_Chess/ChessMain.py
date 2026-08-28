@@ -25,6 +25,9 @@ def Load_Images ():
 #Main driver code: This will handle the user input and updating the graphics
 def main():
     screen = p.display.set_mode((WIDTH,HEIGHT))
+    p.display.set_caption("GiriChess")
+    Icon_image = p.image.load(R"Giri_Chess\Pieces\wN.png")
+    p.display.set_icon(Icon_image)
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     p.display.update()
@@ -33,6 +36,10 @@ def main():
     validMoves = gs.all_valid_moves_advanced()
     #valid moves is going to be a very expensive operations so we don't wanna call it every frame
     move_made = False   #flag variable when user makes a move
+    animate = False     #Flag variable when to run animation 
+    show_end_screen = False #Flag variable when to display end_screen pop up
+    show_promotion_screen = False #Flag variable when to display pawn promotion ui
+    promotion_move = None
     
     
     print(gs.board)
@@ -42,6 +49,10 @@ def main():
     #Store squares clicked
     sq_selected = ()     #this will store the current square selected tuple (row,col)
     player_clicks = []   # this will store starting pos, destination pos desired by the user[(3,6),(3,4)]
+    end_screen_buttons = [] #this will store the (x,y,height,width) of each button on the end screen
+    
+    #Game-over
+    GameOver = False
     
     #Game Loop
     while running:
@@ -52,40 +63,92 @@ def main():
             #click and drag  (add later)
             if e.type ==p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()    #x,y location of the mouse
-                col = location[0]//SQ_SIZE
-                row = location[1]//SQ_SIZE
-                if sq_selected == (row,col):    # click the same square twice, unselect a sqaure
-                    sq_selected = ()
-                    player_clicks = []
-                else:                           # store the square clicked
-                    sq_selected = (row,col)
-                    player_clicks.append(sq_selected)
-                if len(player_clicks)==2:       # after 2nd click
-                    move = ChessEngine.Move(player_clicks[0],player_clicks[1],gs.board)
+                
+                if show_promotion_screen:       #Special activation for pawn moves UI only
+                    choice = get_promotion_choice_click(location,gs,promotion_move)
+                    if choice: # 'Q', 'R', 'B', or 'N'
+                        
+                        promotion_move.promotion_choice = choice
+                        gs.make_move(promotion_move)
+                        print(promotion_move.Get_chessNotation())
+                        move_made = True
+                        animate = True
+                        validMoves = gs.all_valid_moves_advanced()
+                        
+                    #Reset states to resume normal gamplay either way
+                    show_promotion_screen = False
+                    promotion_move = None
+                    validMoves = gs.all_valid_moves_advanced()
+                        
+                        
+                        
+                elif not GameOver:                    #Only allow the user to make moves using mouse if game's not over
                     
+                    col = location[0]//SQ_SIZE
+                    row = location[1]//SQ_SIZE
+                    if sq_selected == (row,col):    # click the same square twice, unselect a sqaure
+                        sq_selected = ()
+                        player_clicks = []
+                    else:                           # store the square clicked
+                        sq_selected = (row,col)
+                        player_clicks.append(sq_selected)
+                    if len(player_clicks)==2:       # after 2nd click
+                        move = ChessEngine.Move(player_clicks[0],player_clicks[1],gs.board)
+                        
+                        
+                        #check if the move is valid one
+                        for i in range(len(validMoves)):
+                            if move == validMoves[i]:
+                                
+                                #check for pawn promotion move first
+                                if validMoves[i].is_pawn_promotion:
+                                    show_promotion_screen = True
+                                    promotion_move = validMoves[i]
+                                else:
+                                    gs.make_move(validMoves[i])
+                                    print(move.Get_chessNotation())
+                                    move_made = True
+                                    animate = True
+                                sq_selected = ()    #reset user clicks
+                                player_clicks = []
+                        if not move_made and not show_promotion_screen:
+                            player_clicks = [sq_selected]
+                
+                elif show_end_screen:
+                    location = p.mouse.get_pos()
                     
-                    #check if the move is valid one
-                    for i in range(len(validMoves)):
-                        if move == validMoves[i]:
-                            gs.make_move(validMoves[i])
-                            print(move.Get_chessNotation())
-                            move_made = True
-                            sq_selected = ()    #reset user clicks
-                            player_clicks = []
-                    if not move_made:
-                        player_clicks = [sq_selected]
+                    if end_screen_buttons[0].collidepoint(location):# if 'X' on the pop up screen is clicked
+                        show_end_screen = False                     #Hide everything in the next frame
+                        end_screen_buttons = []                     #remove the buttons from the board
+                    
+                    elif end_screen_buttons[1].collidepoint(location):  #Open engine analysis panel
+                        print("Game Review clicked")
+                    
+                    elif end_screen_buttons[2].collidepoint(location):  #Add the game to the user database later
+                        print("Save clicked")
+                        
+                    elif end_screen_buttons[3].collidepoint(location):  #Reset the board without saving
+                        gs,validMoves,sq_selected, player_clicks, move_made,animate ,GameOver,show_end_screen,end_screen_buttons,show_promotion_screen,promotion_move =reset_board()
+                    
             
             #Key press events
             if e.type == p.KEYDOWN:
                 if e.key== p.K_z:       #Undo when 'z' when z is pressed
                     gs.undo_move()
                     move_made = True
+                    animate = False
+
+                if e.key == p.K_r:      #Reset the Board when 'r' is pressed
+                    gs,validMoves,sq_selected, player_clicks, move_made,animate ,GameOver,show_end_screen,end_screen_buttons,show_promotion_screen,promotion_move  =reset_board()
+                    
                     
         
         if move_made:
-            move_animation(gs.moveLog[-1],screen,gs.board,clock)
+            if animate:
+                move_animation(gs.moveLog[-1],screen,gs.board,clock)
             validMoves = gs.all_valid_moves_advanced()
             move_made = False
+            animate = False
             if len(validMoves) == 0:
                 if gs.inCheck:
                     print("CHECKMATE!")
@@ -93,8 +156,47 @@ def main():
                     print("STALEMATE!")
             
         draw_Gamestate(screen,gs,validMoves,sq_selected)
+        
+        #Check if the move is promotion move:
+        if show_promotion_screen:
+            pawn_promotion_ui(screen,gs,promotion_move)
+        
+        #Check the first time when game ends, and end screen needs to be shown
+        if (gs.checkmate or gs.stalemate) and not GameOver:
+            GameOver = True
+            show_end_screen = True
+            
+        # Draw the popup ONLY if show_end_screen is active
+        if show_end_screen:
+            if gs.checkmate:
+                if gs.whiteToMove:
+                    end_screen_buttons = end_screen(screen, 'Black won by checkmate')
+                else:
+                    end_screen_buttons = end_screen(screen, 'White won by checkmate')
+            elif gs.stalemate:
+                end_screen_buttons = end_screen(screen, 'Game Drawn by stalemate')
+
         clock.tick(MAX_FPS)
         p.display.flip()
+
+
+"""
+Function that resets the board when called
+"""
+def reset_board():
+    gs = ChessEngine.GameState()
+    validMoves = gs.all_valid_moves_advanced()
+    sq_selected = ()
+    player_clicks = []
+    move_made = False
+    animate = False
+    GameOver = False
+    show_end_screen = False
+    end_screen_buttons = []
+    show_promotion_screen = False
+    promotion_move = None
+    
+    return gs,validMoves,sq_selected, player_clicks, move_made,animate ,GameOver,show_end_screen,end_screen_buttons,show_promotion_screen,promotion_move
 
 
 """
@@ -123,7 +225,16 @@ def highlight_Squares(screen,gs,validMoves,sq_selected):
     if gs.inCheck and gs.whiteToMove:
         screen.blit(s,(gs.whiteKingLocation[1]*SQ_SIZE,gs.whiteKingLocation[0]*SQ_SIZE))
     elif gs.inCheck and not gs.whiteToMove:
-        screen.blit(s,(gs.blackKingLocation[1]*SQ_SIZE,gs.blackKingLocation[0]*SQ_SIZE))        
+        screen.blit(s,(gs.blackKingLocation[1]*SQ_SIZE,gs.blackKingLocation[0]*SQ_SIZE))
+    
+    #Highlight last move played (start square and end square)
+    s.fill(p.Color('yellow'))
+    if len(gs.moveLog)>0:
+        last_move = gs.moveLog[-1]
+        screen.blit(s,(last_move.startcol*SQ_SIZE,last_move.startrow*SQ_SIZE))
+        screen.blit(s,(last_move.endcol*SQ_SIZE,last_move.endrow*SQ_SIZE))
+        
+        
                 
                     
 """
@@ -209,7 +320,158 @@ def move_animation(move,screen,board,clock):
         screen.blit(IMAGES[move.piece_moved],p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
         p.display.flip()
         clock.tick(60)
+        
+"""
+Function to display the end screen of a game (will be used for the chess AI not required for the engine)
+"""
 
+def end_screen(screen,text):
+    
+    words = text.split()
+    line1_text = f"{words[0]} {words[1]}"
+    line2_text = f"{words[2]} {words[3]}"
+    
+    font_won = p.font.SysFont("Helvitca",64,False,False)
+    font_endtype = p.font.SysFont("Helvitca",24,False,False)
+    #Font for buttons
+    font_btn = p.font.SysFont("Helvetica", 20, True, False)
+    font_close = p.font.SysFont("Helvetica", 24, True, False)
+    
+    box_size = 5*SQ_SIZE
+    header_height = 1.5*SQ_SIZE
+    
+    # Surface position on screen
+    surface_x = 1.5 * SQ_SIZE
+    surface_y = 1.5 * SQ_SIZE
+    
+    # add p.SRCALPHA to show transparency around the corners
+    s = p.Surface((box_size,box_size),p.SRCALPHA)
+    p.draw.rect(s, p.Color('black'), (0, 0, box_size, box_size), border_radius=15)
+    p.draw.rect(s, [50,50,50], (0, 0, box_size, header_height),
+                border_top_left_radius=15,
+                border_top_right_radius= 15,
+                border_bottom_left_radius=0,
+                border_bottom_right_radius=0)
+    
+    #Add textobject
+    text_surface_won = font_won.render(line1_text, True, p.Color('white'))
+    text_surface_endtype = font_endtype.render(line2_text, True, [150,150,150])
+    text_rect_won = text_surface_won.get_rect()
+    text_rect_endtype = text_surface_endtype.get_rect()
+    
+    # Position the text at the top center of the box
+    # Padding pushes the text down slightly from the very edge (e.g., 15 pixels)
+    top_padding = 15 
+    text_rect_won.midtop = (box_size // 2, top_padding)
+    text_rect_endtype.midtop = (box_size//2,(header_height//2)+15)
+    
+    s.blit(text_surface_won, text_rect_won)
+    s.blit(text_surface_endtype, text_rect_endtype)
+    
+    # --- TOP-RIGHT "X" CLOSE BUTTON ---
+    close_padding = 15
+    close_size = 25
+    close_x = box_size - close_size - close_padding
+    close_y = close_padding
+    
+    # Draw a small rounded box for the X button
+    p.draw.rect(s, [70, 70, 70], (close_x, close_y, close_size, close_size), border_radius=5)
+    close_surf = font_close.render("X", True, [150,150,150])
+    close_rect = close_surf.get_rect(center=(close_x + close_size // 2, close_y + close_size // 2))
+    s.blit(close_surf, close_rect)
+    
+    # --- BUTTONS GENERATION (Bottom Half) ---
+    btn1_text="Game Review"
+    btn2_text="Save" 
+    btn3_text="Rematch"
+    
+    padding = 15
+    btn_height = 40
+    
+    # 1. Full-width Green Button (Game Review)
+    btn1_x = padding
+    btn1_y = box_size - (2 * btn_height) - (2 * padding)
+    btn1_w = box_size - (2 * padding)
+    p.draw.rect(s, p.Color('darkgreen'), (btn1_x, btn1_y, btn1_w, btn_height), border_radius=8)
+    
+    btn1_surf = font_btn.render(btn1_text, True, p.Color('white'))
+    btn1_rect = btn1_surf.get_rect(center=(btn1_x + btn1_w // 2, btn1_y + btn_height // 2))
+    s.blit(btn1_surf, btn1_rect)
+    
+    # 2. Left and Right Half-Width Buttons
+    btn23_y = box_size - btn_height - padding
+    btn23_w = (box_size - (3 * padding)) // 2 # Calculate width to fit perfectly with gaps
+    
+    # Left Button
+    btn2_x = padding
+    p.draw.rect(s, [50,50,50], (btn2_x, btn23_y, btn23_w, btn_height), border_radius=8)
+    btn2_surf = font_btn.render(btn2_text, True, [150,150,150])
+    btn2_rect = btn2_surf.get_rect(center=(btn2_x + btn23_w // 2, btn23_y + btn_height // 2))
+    s.blit(btn2_surf, btn2_rect)
+    
+    # Right Button
+    btn3_x = (2 * padding) + btn23_w
+    p.draw.rect(s, [50,50,50], (btn3_x, btn23_y, btn23_w, btn_height), border_radius=8)
+    btn3_surf = font_btn.render(btn3_text, True, [150,150,150])
+    btn3_rect = btn3_surf.get_rect(center=(btn3_x + btn23_w // 2, btn23_y + btn_height // 2))
+    s.blit(btn3_surf, btn3_rect)
+    
+    
+    # Convert button coordinates to global screen dimensions for collision detection
+    screen_close = p.Rect(surface_x + close_x, surface_y + close_y, close_size, close_size)
+    screen_btn1 = p.Rect(surface_x + btn1_x, surface_y + btn1_y, btn1_w, btn_height)
+    screen_btn2 = p.Rect(surface_x + btn2_x, surface_y + btn23_y, btn23_w, btn_height)
+    screen_btn3 = p.Rect(surface_x + btn3_x, surface_y + btn23_y, btn23_w, btn_height)
+    
+    screen.blit(s, (surface_x, surface_y))
+    return [screen_close,screen_btn1, screen_btn2, screen_btn3]
+
+"""
+ Calculates if the mouse clicked on one of the 4 choice boundaries.
+ It returns the choice as one of the following character "Q","N","B","R"
+"""
+def get_promotion_choice_click(mouse_pos,gs,promotion_move):
+    color = 'w' if gs.whiteToMove else 'b'
+    options = ['Q', 'R', 'B', 'N']
+    
+    col = promotion_move.endcol
+    
+    panel_x = col*SQ_SIZE
+    panel_y = 0 if color=='w' else 4*SQ_SIZE
+    
+    
+    for i, opt in enumerate(options):
+        global_rect = p.Rect(panel_x, panel_y + (i * SQ_SIZE), SQ_SIZE, SQ_SIZE)
+        if global_rect.collidepoint(mouse_pos):
+            return opt
+    return None
+
+
+"""
+Creates a menu with images of pieces that can be chosen as the promoted piece
+"""
+def pawn_promotion_ui(screen,gs,promotion_move):
+    color = 'w' if gs.whiteToMove else 'b'
+    options = ['Q', 'R', 'B', 'N']
+    
+    #size of the panel
+    panel_w = SQ_SIZE
+    panel_h = 4*SQ_SIZE
+    
+    #postion of the panel on board
+    col = promotion_move.endcol
+    panel_x = col*SQ_SIZE
+    panel_y = 0 if color == 'w' else 4*SQ_SIZE
+    
+    s = p.Surface((panel_w, panel_h), p.SRCALPHA)
+    p.draw.rect(s, p.Color('white'), (0, 0, panel_w, panel_h), border_radius=15)
+    p.draw.rect(s, [100, 100, 100], (0, 0, panel_w, panel_h), width=3, border_radius=15)
+    
+    # Draw pieces vertically down the menu panel
+    for i, opt in enumerate(options):
+        s.blit(IMAGES[f"{color}{opt}"], (0, i * SQ_SIZE))
+        
+    screen.blit(s, (panel_x, panel_y))
 
 if __name__=="__main__":
     main()
