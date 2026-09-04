@@ -1,10 +1,10 @@
 # GiriChess
 
-A chess engine and interactive chess application built from scratch in Python using Pygame. The project focuses on implementing chess rules, legal move generation, game-state management, and efficient check detection, with search and evaluation algorithms planned for a future AI opponent.
+A chess engine and interactive chess application built from scratch in Python using Pygame. The project focuses on implementing chess rules, legal move generation, game-state management, and efficient check detection. The project currently focuses on chess-engine fundamentals, with position evaluation and search-based AI planned as the next development phase.
 
 
 <p align="center">
-  <img src="assets/demo_v3.gif" alt="Chess Engine Demo" width="600">
+  <img src="assets/demo_v4.gif" alt="Chess Engine Demo" width="600">
 </p>
 
 ---
@@ -21,35 +21,27 @@ A chess engine and interactive chess application built from scratch in Python us
 
 ### Chess Engine
 
-- Implemented an 8×8 board representation using a 2D Python list.
-- Implemented piece-wise move generation for all six chess pieces.
-- Implemented legal move validation to prevent moves that leave the king in check.
-- Implemented detection and handling of:
-  - Pins
-  - Single check
-  - Double check
-  - Checkmate
-  - Stalemate
-- Implemented special chess rules:
-  - Castling
-  - En passant
-  - Pawn promotion
-- Implemented move history and undo functionality.
-- Generated coordinate notation for executed moves.
+- 8×8 board representation using a 2D Python list
+- Piece-specific legal move generation for:
+  - Pawn
+  - Knight
+  - Bishop
+  - Rook
+  - Queen
+  - King
+- Legal move validation
+- Pin detection
+- Single-check and double-check handling
+- Check, checkmate, and stalemate detection
+- Optimized check detection
+- Move history and undo functionality
 
-### Check Detection
+### Special Chess Rules
 
-Implemented two approaches to check detection during development:
-
-**Naive approach**
-- Generates opponent moves to determine whether the king is under attack.
-- Preserved as a separate reference implementation.
-
-**Optimized approach**
-- Directly analyzes attacking pieces, pins, and attack directions.
-- Avoids generating the complete opponent move list during check evaluation.
-- Used by the main engine for more efficient legal-move generation.
-
+- Castling with dedicated castling-rights tracking
+- En passant with game-state tracking
+- Pawn promotion with interactive piece selection
+- Validation of special-move conditions
 
 ### Graphical User Interface
 
@@ -66,6 +58,39 @@ Implemented two approaches to check detection during development:
 - Added custom application title and icon.
 
 ![Board](assets/Board.png)
+
+---
+
+## Check Detection
+
+Two approaches to check detection were implemented during development.
+
+### Naive Approach
+
+The naive implementation determines whether a king is in check by generating the opponent's possible moves.
+
+This implementation is preserved in a separate Git branch as a reference and baseline implementation.
+
+### Optimized Approach
+
+The main engine directly examines potential attackers, pins, and attack directions instead of repeatedly generating the opponent's complete move list.
+
+This reduces the computational cost of repeated check and legal-move validation.
+
+---
+
+## Project Structure
+
+```text
+GiriChess/
+├── Giri_Chess/
+│   ├── ChessMain.py
+│   ├── ChessEngine.py
+│   └── Pieces/
+├── assets/
+├── README.md
+└── DEVELOPMENT_LOG.md
+```
 
 ---
 
