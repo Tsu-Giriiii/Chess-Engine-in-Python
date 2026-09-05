@@ -2,6 +2,7 @@
 
 import pygame as p  
 import ChessEngine
+import AI_bot
 
 p.init()
 HEIGHT = WIDTH = 512 #400 is also good
@@ -54,8 +55,20 @@ def main():
     #Game-over
     GameOver = False
     
+    #Identify Human or AI
+    """
+    Currently our AI has only 1 level of difficulty
+    These could change to integer values if multiple levels need to be added.
+    """
+    playerOne = True   #If a human is playing as white, then this will be true. If computer is playing as white then this will be false
+    playerTwo = True   # Same as above but for black
+    
+    
     #Game Loop
     while running:
+        
+        isHumanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
+        
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
@@ -64,7 +77,7 @@ def main():
             if e.type ==p.MOUSEBUTTONDOWN:
                 location = p.mouse.get_pos()    #x,y location of the mouse
                 
-                if show_promotion_screen:       #Special activation for pawn moves UI only
+                if show_promotion_screen and isHumanTurn:       #Special activation for pawn moves UI only
                     choice = get_promotion_choice_click(location,gs,promotion_move)
                     if choice: # 'Q', 'R', 'B', or 'N'
                         
@@ -82,7 +95,7 @@ def main():
                         
                         
                         
-                elif not GameOver:                    #Only allow the user to make moves using mouse if game's not over
+                elif not GameOver and isHumanTurn:                    #Only allow the user to make moves using mouse if game's not over
                     
                     col = location[0]//SQ_SIZE
                     row = location[1]//SQ_SIZE
@@ -134,6 +147,8 @@ def main():
             #Key press events
             if e.type == p.KEYDOWN:
                 if e.key== p.K_z:       #Undo when 'z' when z is pressed
+                    if isHumanTurn:
+                        gs.undo_move()
                     gs.undo_move()
                     move_made = True
                     animate = False
@@ -141,7 +156,20 @@ def main():
                 if e.key == p.K_r:      #Reset the Board when 'r' is pressed
                     gs,validMoves,sq_selected, player_clicks, move_made,animate ,GameOver,show_end_screen,end_screen_buttons,show_promotion_screen,promotion_move  =reset_board()
                     
-                    
+        #AI move finder
+        if (not GameOver and not isHumanTurn):
+            AI_move,choice = AI_bot.findRandomMoves(validMoves)
+            if AI_move.is_pawn_promotion:
+                promotion_move = AI_move
+                promotion_move.promotion_choice = choice
+                gs.make_move(promotion_move)
+                print(promotion_move.Get_chessNotation())
+                move_made = True
+                animate = True
+            else:
+                gs.make_move(AI_move)
+                move_made = True
+                animate = True
         
         if move_made:
             if animate:
@@ -299,7 +327,7 @@ def move_animation(move,screen,board,clock):
     dR = move.endrow - move.startrow
     dC = move.endcol - move.startcol
     
-    framesPerCount = 2 #speed to the animation is dependent on this variable
+    framesPerCount = 3 #speed to the animation is dependent on this variable
     frameCount = (abs(dR)+abs(dC))*framesPerCount
     
     for frame in range(frameCount+1):
