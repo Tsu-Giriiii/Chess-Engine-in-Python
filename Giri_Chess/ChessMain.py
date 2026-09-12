@@ -61,7 +61,7 @@ def main():
     These could change to integer values if multiple levels need to be added.
     """
     playerOne = True   #If a human is playing as white, then this will be true. If computer is playing as white then this will be false
-    playerTwo = True   # Same as above but for black
+    playerTwo = False   # Same as above but for black
     
     
     #Game Loop
@@ -158,7 +158,9 @@ def main():
                     
         #AI move finder
         if (not GameOver and not isHumanTurn):
-            AI_move,choice = AI_bot.findRandomMoves(validMoves)
+            AI_move,choice = AI_bot.findBestMoves(gs,validMoves)
+            if AI_move is None:
+                AI_move,choice = AI_bot.findRandomMoves(validMoves)
             if AI_move.is_pawn_promotion:
                 promotion_move = AI_move
                 promotion_move.promotion_choice = choice
@@ -168,6 +170,7 @@ def main():
                 animate = True
             else:
                 gs.make_move(AI_move)
+                print(AI_move.Get_chessNotation())
                 move_made = True
                 animate = True
         

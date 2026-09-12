@@ -19,6 +19,16 @@ class GameState:
             ["wp","wp","wp","wp","wp","wp","wp","wp"],
             ["wR","wN","wB","wQ","wK","wB","wN","wR"]
         ]
+        '''self.board = [                                  
+                    ["--","wK","--","--","--","--","--","--"],
+                    ["--","--","--","--","--","--","bQ","--"],
+                    ["--","bK","--","--","--","--","--","--"],
+                    ["--","--","--","--","--","--","--","--"],
+                    ["--","--","--","--","--","--","--","--"],
+                    ["--","--","--","--","--","--","--","--"],
+                    ["--","--","--","--","--","--","--","--"],
+                    ["--","--","--","--","--","--","--","--"]
+        ]'''
         #Note: Board is an 8x8, 2-D list
         #Each cell is represented by two characters 1st: Color (b/w), 2nd: Piece type (K,Q,R,B,N,p)
         #Empty square is represented by "--"
@@ -50,7 +60,7 @@ class GameState:
                                                self.currentCastlingRights.bks,self.currentCastlingRights.bqs)]
         
         
-    # Works only for normal moves: (Not castling,En passent, Pawn Promotion)
+    
     def make_move(self,move):
         self.board[move.startrow][move.startcol] = '--' # make the space piece just left empty
         self.board[move.endrow][move.endcol] = move.piece_moved
@@ -63,7 +73,7 @@ class GameState:
         elif move.piece_moved == 'bK':
             self.blackKingLocation = (move.endrow,move.endcol)
         
-        #pawn promotion (Only queen promotion)
+        #pawn promotion (Default queen promotion)
         if move.is_pawn_promotion:
     
             self.board[move.endrow][move.endcol] = move.piece_moved[0]+move.promotion_choice
@@ -668,7 +678,7 @@ class Move:
         self.is_pawn_promotion = False
         if (self.piece_moved == 'wp' and self.endrow==0) or (self.piece_moved=='bp' and self.endrow==7):
             self.is_pawn_promotion = True
-        self.promotion_choice = promoted_piece
+        self.promotion_choice = promoted_piece if promoted_piece else 'Q'
         
         #En-passent
         self.is_enpassent = enpassent_move
