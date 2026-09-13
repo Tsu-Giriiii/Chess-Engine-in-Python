@@ -138,9 +138,7 @@ GiriChess/
 │   ├── ChessMain.py
 │   ├── ChessEngine.py
 │   └── AI_bot.py
-├── assets/
-│   ├── Board_v2.png
-│   └── demo_v5.gif
+├── assets/   
 ├── README.md
 └── DEVELOPMENT_LOG.md
 ```
