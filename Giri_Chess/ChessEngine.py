@@ -9,7 +9,7 @@ class GameState:
     def __init__(self):
         #Numpy arrays based board will be faster for AI based engine
         #Initial position of the board from white's perspective
-        '''self.board = [                                  
+        self.board = [                                  
             ["bR","bN","bB","bQ","bK","bB","bN","bR"],
             ["bp","bp","bp","bp","bp","bp","bp","bp"],
             ["--","--","--","--","--","--","--","--"],
@@ -18,8 +18,8 @@ class GameState:
             ["--","--","--","--","--","--","--","--"],
             ["wp","wp","wp","wp","wp","wp","wp","wp"],
             ["wR","wN","wB","wQ","wK","wB","wN","wR"]
-        ]'''
-        self.board = [                                  
+        ]
+        '''self.board = [                                  
                     ["--","wK","--","--","--","--","--","--"],
                     ["--","--","--","--","--","--","bQ","--"],
                     ["--","--","--","--","--","--","--","--"],
@@ -28,7 +28,7 @@ class GameState:
                     ["--","--","--","--","bK","--","--","bR"],
                     ["--","--","--","--","--","--","--","--"],
                     ["--","--","--","--","--","--","--","--"]
-        ]
+        ]'''
         #Note: Board is an 8x8, 2-D list
         #Each cell is represented by two characters 1st: Color (b/w), 2nd: Piece type (K,Q,R,B,N,p)
         #Empty square is represented by "--"
@@ -718,6 +718,3 @@ class Move:
     def convertRankFile(self,r,c):
         return self.colstofiles[c]+self.rowstoranks[r]
 
-
-#git switch main
-#git stash pop
