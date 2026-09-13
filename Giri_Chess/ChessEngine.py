@@ -9,7 +9,7 @@ class GameState:
     def __init__(self):
         #Numpy arrays based board will be faster for AI based engine
         #Initial position of the board from white's perspective
-        self.board = [                                  
+        '''self.board = [                                  
             ["bR","bN","bB","bQ","bK","bB","bN","bR"],
             ["bp","bp","bp","bp","bp","bp","bp","bp"],
             ["--","--","--","--","--","--","--","--"],
@@ -18,17 +18,17 @@ class GameState:
             ["--","--","--","--","--","--","--","--"],
             ["wp","wp","wp","wp","wp","wp","wp","wp"],
             ["wR","wN","wB","wQ","wK","wB","wN","wR"]
-        ]
-        '''self.board = [                                  
+        ]'''
+        self.board = [                                  
                     ["--","wK","--","--","--","--","--","--"],
                     ["--","--","--","--","--","--","bQ","--"],
-                    ["--","bK","--","--","--","--","--","--"],
                     ["--","--","--","--","--","--","--","--"],
                     ["--","--","--","--","--","--","--","--"],
                     ["--","--","--","--","--","--","--","--"],
+                    ["--","--","--","--","bK","--","--","bR"],
                     ["--","--","--","--","--","--","--","--"],
                     ["--","--","--","--","--","--","--","--"]
-        ]'''
+        ]
         #Note: Board is an 8x8, 2-D list
         #Each cell is represented by two characters 1st: Color (b/w), 2nd: Piece type (K,Q,R,B,N,p)
         #Empty square is represented by "--"
@@ -58,6 +58,9 @@ class GameState:
         self.currentCastlingRights = CastlingRights(True,True,True,True)    #a copy needs to be created to avoid in place changes
         self.castleRightsLog = [CastlingRights(self.currentCastlingRights.wks,self.currentCastlingRights.wqs,
                                                self.currentCastlingRights.bks,self.currentCastlingRights.bqs)]
+        
+        #3-Fold Repetition
+        threeFoldLog = []
         
         
     
@@ -104,7 +107,6 @@ class GameState:
         self.update_castle_rights(move)
         self.castleRightsLog.append(CastlingRights(self.currentCastlingRights.wks,self.currentCastlingRights.wqs,
                                                self.currentCastlingRights.bks,self.currentCastlingRights.bqs))
-        
             
     
     def undo_move(self):
@@ -144,6 +146,10 @@ class GameState:
                 else:                               # queenside castle
                     self.board[move.endrow][move.endcol-2]= self.board[move.endrow][move.endcol+1]
                     self.board[move.endrow][move.endcol+1] = '--'     
+            
+            #Remove the flags if true
+            self.checkmate = False
+            self.stalemate = False
          
         else:
             return

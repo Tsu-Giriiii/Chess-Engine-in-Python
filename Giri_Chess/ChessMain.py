@@ -152,6 +152,7 @@ def main():
                     gs.undo_move()
                     move_made = True
                     animate = False
+                    GameOver = False
 
                 if e.key == p.K_r:      #Reset the Board when 'r' is pressed
                     gs,validMoves,sq_selected, player_clicks, move_made,animate ,GameOver,show_end_screen,end_screen_buttons,show_promotion_screen,promotion_move  =reset_board()

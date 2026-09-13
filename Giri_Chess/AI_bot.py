@@ -32,24 +32,27 @@ def findBestMoves(gs,validMoves):
         opponentsMaxScore = -CHECKMATE
         
         if gs.stalemate:
-            opponentsMaxScore = 0
-        
-        for opponentsMove in opponentsMoves:
-            gs.make_move(opponentsMove)
-            if gs.checkmate:
-                score = -turn_multiplier*CHECKMATE
-            
-            elif gs.stalemate:
-                score = STALEMATE
-            
-            else:
-                score = -turn_multiplier*scoreMaterial(gs.board)
-            
-            if score > opponentsMaxScore:
-                opponentsMaxScore = score
+            opponentsMaxScore = STALEMATE
+        elif gs.checkmate:
+            opponentsMaxScore = -CHECKMATE
+        else:
+            for opponentsMove in opponentsMoves:
+                gs.make_move(opponentsMove)
+                gs.all_valid_moves_advanced()
+                if gs.checkmate:
+                    score = CHECKMATE
                 
-            gs.undo_move()
-            #move.append((playerMove.Get_chessNotation(),score))
+                elif gs.stalemate:
+                    score = STALEMATE
+                
+                else:
+                    score = -turn_multiplier*scoreMaterial(gs.board)
+                
+                if score > opponentsMaxScore:
+                    opponentsMaxScore = score
+                    
+                gs.undo_move()
+                #move.append((playerMove.Get_chessNotation(),score))
         if opponentsMaxScore < opponentMinMaxScore:
             opponentMinMaxScore = opponentsMaxScore
             bestPlayerMove = playerMove
