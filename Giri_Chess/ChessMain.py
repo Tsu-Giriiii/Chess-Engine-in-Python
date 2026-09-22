@@ -159,7 +159,7 @@ def main():
                     
         #AI move finder
         if (not GameOver and not isHumanTurn):
-            AI_move,choice = AI_bot.findBestMoves(gs,validMoves)
+            AI_move,choice = AI_bot.findBestMove(gs,validMoves)
             if AI_move is None:
                 AI_move,choice = AI_bot.findRandomMoves(validMoves)
             if AI_move.is_pawn_promotion:
