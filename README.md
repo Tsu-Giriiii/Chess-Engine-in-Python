@@ -68,21 +68,23 @@ The project is being developed incrementally from a **rules engine → playable 
 
 ### Chess AI
 
-GiriChess currently includes a basic **2-ply chess AI** capable of evaluating candidate moves by considering the resulting opponent response.
+GiriChess includes a search-based chess AI that evaluates candidate moves using material balance and terminal game states.
 
-The current evaluation system considers:
+Current capabilities:
 
-* Material balance
-* Checkmate opportunities
-* Stalemate positions
-* Resulting game states after candidate moves
+- Material-based position evaluation
 
-The AI can currently operate in:
+- Minimax and Negamax search
 
-* **Human vs AI**
-* **AI vs AI**
+- Alpha-Beta pruning to reduce unnecessary search
 
-The current implementation is intentionally lightweight and serves as the foundation for deeper search and stronger evaluation.
+- Checkmate and stalemate handling
+
+- Human vs AI and AI vs AI gameplay
+
+- Node counting to measure search performance
+
+The engine is being developed incrementally, with move ordering and improved positional evaluation planned as the next steps.
 
 ---
 
@@ -116,11 +118,12 @@ The AI is being developed incrementally alongside the chess engine.
 * Stalemate detection during evaluation
 * Human vs AI
 * AI vs AI
+* Minimax search & Negamax Search
+* Alpha-beta Pruning
+* Search node Counting
 
 ### Planned
 
-* Minimax search
-* Alpha-Beta pruning
 * Move ordering
 * Search optimizations
 * Improved positional evaluation
@@ -139,8 +142,7 @@ GiriChess/
 │   ├── ChessEngine.py
 │   └── AI_bot.py
 ├── assets/   
-├── README.md
-└── DEVELOPMENT_LOG.md
+└── README.md
 ```
 
 ---
@@ -173,8 +175,7 @@ GiriChess/
 ### Phase 3 — Chess Intelligence 🚧
 
 * Position evaluation
-* 2-ply AI
-* Minimax
+* Minimax & Negamax
 * Alpha-Beta pruning
 * Move ordering
 * Search optimization
@@ -182,7 +183,6 @@ GiriChess/
 
 ### Phase 4 — Full Chess Application
 
-* Timers
 * Move history UI
 * Evaluation bar
 * Engine analysis
@@ -206,7 +206,7 @@ GiriChess/
 
 **GiriChess has completed its core chess rules engine and playable application.**
 
-The current development focus is **Chess Intelligence**, with a basic 2-ply AI already implemented and deeper search algorithms planned as the next step.
+Development is currently focused on Chess Intelligence. GiriChess now implements Minimax, Negamax, and Alpha-Beta pruning, with node counting to measure search performance. Move ordering and improved positional evaluation are the next planned improvements.
 
 The project is intentionally being developed incrementally, allowing each layer — rules, interface, and intelligence — to remain independently testable and extensible.
 
