@@ -10,7 +10,7 @@ CHECKMATE = 1000
 STALEMATE = 0
 
 #Min-Max
-DEPTH = 2
+DEPTH = 3
 
 #The computer randomly plays a move from the list of valid moves
 def findRandomMoves(validMoves):
@@ -70,9 +70,12 @@ def find2plyBestMoves(gs,validMoves):
 
 def findBestMove(gs, validMoves):  
     
-    global nextMove
+    global nextMove, positions_counter
+    positions_counter = 0
     nextMove = None
-    findNegaMaxMoves(gs,validMoves,DEPTH,1 if gs.whiteToMove else -1)
+    #findNegaMaxMoves(gs,validMoves,DEPTH,1 if gs.whiteToMove else -1)
+    findNegaMaxMovesAlphaBeta(gs,validMoves,DEPTH,-CHECKMATE,CHECKMATE,1 if gs.whiteToMove else -1)
+    print(positions_counter)
     return nextMove,'Q'
 
 """
@@ -123,7 +126,8 @@ Negamax Algorithm: Combines min-max implemetation for black and white evaluation
 into a single clean algorithm.
 """
 def findNegaMaxMoves(gs,validMoves,depth,turnMultiplier):
-    global nextMove
+    global nextMove,positions_counter
+    positions_counter+=1
     if depth == 0:
         return turnMultiplier*scoreBoard(gs)
     
@@ -140,7 +144,36 @@ def findNegaMaxMoves(gs,validMoves,depth,turnMultiplier):
                 nextMove = move
         gs.undo_move()
     return maxScore
+
+"""
+Alpha Beta Pruning 
+"""
+
+def findNegaMaxMovesAlphaBeta(gs,validMoves,depth,alpha,beta,turnMultiplier):
+    global nextMove, positions_counter
+    positions_counter+=1
+    if depth == 0:
+        return turnMultiplier*scoreBoard(gs)
     
+    #Move ordering (Evaluate best moves first) Implement later
+    
+    maxScore = -CHECKMATE
+    for move in validMoves:
+        
+        gs.make_move(move)
+        nextMoves = gs.all_valid_moves_advanced()
+        score = -findNegaMaxMovesAlphaBeta(gs,nextMoves,depth-1,-beta,-alpha,-turnMultiplier)
+        
+        if score > maxScore:
+            maxScore = score
+            if depth == DEPTH:
+                nextMove = move
+        gs.undo_move()
+        if maxScore > alpha: #Pruning
+            alpha = maxScore
+        if alpha >= beta:
+            break
+    return maxScore
 
 #Note: Positive Score is good for white, Negative for black
 def scoreBoard(gs):

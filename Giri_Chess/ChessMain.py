@@ -61,7 +61,7 @@ def main():
     These could change to integer values if multiple levels need to be added.
     """
     playerOne = True   #If a human is playing as white, then this will be true. If computer is playing as white then this will be false
-    playerTwo = False   # Same as above but for black
+    playerTwo = True   # Same as above but for black
     
     
     #Game Loop
@@ -146,9 +146,10 @@ def main():
             
             #Key press events
             if e.type == p.KEYDOWN:
-                if e.key== p.K_z:       #Undo when 'z' when z is pressed
-                    if isHumanTurn:
-                        gs.undo_move()
+                if e.key== p.K_z:      #Undo when 'z' when z is pressed
+                    if playerOne == False or playerTwo==False:
+                        if isHumanTurn:
+                            gs.undo_move()
                     gs.undo_move()
                     move_made = True
                     animate = False
