@@ -53,6 +53,7 @@ class GameState:
         
         #En-passent
         self.enpassent_possible = () #Records the squares where enpassent is possible
+        self.enpassentPossibleLog = [self.enpassent_possible]
         
         #Castling
         self.currentCastlingRights = CastlingRights(True,True,True,True)    #a copy needs to be created to avoid in place changes
@@ -91,6 +92,8 @@ class GameState:
         else:
             self.enpassent_possible = ()
         
+        self.enpassentPossibleLog.append(self.enpassent_possible)
+        
         #Castle move
         #Note: the king has already moved normally... all we need to do is move the correct rook
         if move.iscastleMove:
@@ -126,11 +129,9 @@ class GameState:
             if move.is_enpassent:
                 self.board[move.endrow][move.endcol]= '--' #Make the landing square blank
                 self.board[move.startrow][move.endcol] = move.piece_captured
-                self.enpassent_possible = (move.endrow,move.endcol)
             
-            #undo the pawn advance
-            if move.piece_moved[1] =='p' and abs(move.startrow - move.endrow)==2:
-                self.enpassent_possible = ()
+            self.enpassentPossibleLog.pop()
+            self.enpassent_possible = self.enpassentPossibleLog[-1]
             
             #undo castling rights
 
@@ -314,6 +315,11 @@ class GameState:
         else:
             self.checkmate = False
             self.stalemate = False
+            
+        #set check and checkmate flags for notation
+        if self.moveLog:
+            self.moveLog[-1].isCheck = self.inCheck
+            self.moveLog[-1].isCheckmate = self.checkmate
         
         return moves
     
@@ -690,10 +696,17 @@ class Move:
         self.is_enpassent = enpassent_move
         if self.is_enpassent:
             self.piece_captured = 'wp' if self.piece_moved =='bp' else 'bp'
+            
+        #Capture Move
+        self.isCapture = self.piece_captured!='--' or self.is_enpassent
+        self.disambiguation = ''
         
         #Castling
         self.iscastleMove = iscastleMove
         
+        #Check move
+        self.isCheck = False
+        self.isCheckmate = False
         
         #for testing hard coded moves: Unique number with formula given below
         self.moveID = self.startrow*1000+self.startcol*100+self.endrow*10+self.endcol
@@ -717,4 +730,67 @@ class Move:
     
     def convertRankFile(self,r,c):
         return self.colstofiles[c]+self.rowstoranks[r]
+    
+    def notation_suffixes(self,notation):
+        if self.isCheckmate:
+            return notation+"#"
+        if self.isCheck:
+            return notation+'+'
+        return notation
+    
+    """
+    Works out the file/rank needed to tell this move apart from other legal moves
+    by the same type of piece to the same square (e.g. Nbd2, R1a3, Qh4e1).
+    Must be called BEFORE make_move(), with the legal moves of the current position.
+    """
+    def set_disambiguation(self, validMoves):
+        pieceType = self.piece_moved[1]
+        if pieceType in ('p', 'K'):     #pawns use the file only on captures, kings are unique
+            return
 
+        #other legal moves by the same piece type to the same square, from a different square
+        rivals = [m for m in validMoves
+                if m.piece_moved == self.piece_moved
+                and (m.endrow, m.endcol) == (self.endrow, self.endcol)
+                and (m.startrow, m.startcol) != (self.startrow, self.startcol)]
+        if not rivals:
+            return
+
+        if all(m.startcol != self.startcol for m in rivals):        #file is enough
+            self.disambiguation = self.colstofiles[self.startcol]
+        elif all(m.startrow != self.startrow for m in rivals):      #rank is enough
+            self.disambiguation = self.rowstoranks[self.startrow]
+        else:                                                       #need both
+            self.disambiguation = self.convertRankFile(self.startrow, self.startcol)
+
+    #overriding str() function
+    def __str__(self):
+        notation = ''
+        #castle move
+        if self.iscastleMove:
+            return self.notation_suffixes("O-O") if self.endcol == 6 else self.notation_suffixes("O-O-O")
+        
+        endSquare = self.convertRankFile(self.endrow,self.endcol)
+        #pawn moves
+        if self.piece_moved[1] =='p':
+ 
+            if self.isCapture:
+                notation+= self.colstofiles[self.startcol]+'x'+endSquare
+            else:
+                notation += endSquare
+                
+            if self.is_pawn_promotion:
+                notation+= '='+self.promotion_choice
+            return self.notation_suffixes(notation)
+        
+        #other piece moves
+        notation+= self.piece_moved[1]
+        notation+= self.disambiguation
+        if self.isCapture:
+            notation+='x'
+        notation+= endSquare
+        return self.notation_suffixes(notation)
+            
+        
+        
+        

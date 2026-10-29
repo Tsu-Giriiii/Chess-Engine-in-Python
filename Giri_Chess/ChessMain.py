@@ -5,9 +5,11 @@ import ChessEngine
 import AI_bot
 
 p.init()
-HEIGHT = WIDTH = 512 #400 is also good
+BOARD_HEIGHT = BOARD_WIDTH = 512 #400 is also good
+REFERENCE_HEIGHT = 250
+REFERENCE_WIDTH = BOARD_WIDTH
 DIMENSIONS = 8 #dimension of the chess board 8x8
-SQ_SIZE = HEIGHT // DIMENSIONS
+SQ_SIZE = BOARD_HEIGHT // DIMENSIONS
 MAX_FPS = 15
 IMAGES = {}
 
@@ -25,13 +27,14 @@ def Load_Images ():
 
 #Main driver code: This will handle the user input and updating the graphics
 def main():
-    screen = p.display.set_mode((WIDTH,HEIGHT))
+    screen = p.display.set_mode((REFERENCE_HEIGHT+BOARD_HEIGHT,REFERENCE_WIDTH))
     p.display.set_caption("GiriChess")
     Icon_image = p.image.load(R"Giri_Chess\Pieces\wN.png")
     p.display.set_icon(Icon_image)
     clock = p.time.Clock()
     screen.fill(p.Color("white"))
     p.display.update()
+    MoveLogFont = p.font.SysFont("Arial",12,False,False)    #Font of the MoveLog
     
     gs = ChessEngine.GameState()
     validMoves = gs.all_valid_moves_advanced()
@@ -96,10 +99,10 @@ def main():
                         
                         
                 elif not GameOver and isHumanTurn:                    #Only allow the user to make moves using mouse if game's not over
-                    
+    
                     col = location[0]//SQ_SIZE
                     row = location[1]//SQ_SIZE
-                    if sq_selected == (row,col):    # click the same square twice, unselect a sqaure
+                    if sq_selected == (row,col) or col > 8:    # click the same square twice, unselect a sqaure
                         sq_selected = ()
                         player_clicks = []
                     else:                           # store the square clicked
@@ -118,6 +121,7 @@ def main():
                                     show_promotion_screen = True
                                     promotion_move = validMoves[i]
                                 else:
+                                    validMoves[i].set_disambiguation(validMoves)
                                     gs.make_move(validMoves[i])
                                     print(move.Get_chessNotation())
                                     move_made = True
@@ -166,11 +170,13 @@ def main():
             if AI_move.is_pawn_promotion:
                 promotion_move = AI_move
                 promotion_move.promotion_choice = choice
+                AI_move.set_disambiguation(validMoves)
                 gs.make_move(promotion_move)
                 print(promotion_move.Get_chessNotation())
                 move_made = True
                 animate = True
             else:
+                AI_move.set_disambiguation(validMoves)
                 gs.make_move(AI_move)
                 print(AI_move.Get_chessNotation())
                 move_made = True
@@ -188,7 +194,7 @@ def main():
                 else:
                     print("STALEMATE!")
             
-        draw_Gamestate(screen,gs,validMoves,sq_selected)
+        draw_Gamestate(screen,gs,validMoves,sq_selected,MoveLogFont)
         
         #Check if the move is promotion move:
         if show_promotion_screen:
@@ -214,6 +220,17 @@ def main():
 
 
 """
+Responsible for graphics in used and displayed in the game
+"""
+def draw_Gamestate(screen,gs,validMoves,sq_selected,MoveLogFont):
+    draw_Board(screen)              #To draw the squares on the board
+    #add in piece highlighting and move suggestions
+    highlight_Squares(screen,gs,validMoves,sq_selected)
+    draw_Pieces(screen,gs.board)    #draw the pieces on top of the Board
+    draw_MoveLog(screen,gs,MoveLogFont)
+ 
+
+"""
 Function that resets the board when called
 """
 def reset_board():
@@ -231,6 +248,28 @@ def reset_board():
     
     return gs,validMoves,sq_selected, player_clicks, move_made,animate ,GameOver,show_end_screen,end_screen_buttons,show_promotion_screen,promotion_move
 
+"""
+Draw the squares on the board.
+"""  
+def draw_Board(screen):
+    #squares
+    '''for i in range(0,(DIMENSIONS+1)*SQ_SIZE,SQ_SIZE*2):
+        for j in range(0,(DIMENSIONS+1)*SQ_SIZE,SQ_SIZE*2):
+            p.draw.rect(screen,[255,255,200],[i,j,SQ_SIZE,SQ_SIZE])
+            p.draw.rect(screen,[50,150,50],[i,j-64,SQ_SIZE,SQ_SIZE])
+            p.draw.rect(screen,[50,150,50],[i-64,j,SQ_SIZE,SQ_SIZE])'''
+    global colors
+    colors = [[255,255,200],[50,150,50]]
+    for r in range(DIMENSIONS):
+        for c in range(DIMENSIONS):
+            if (r+c)%2==0:
+                p.draw.rect(screen,colors[0],p.Rect(r*SQ_SIZE,c*SQ_SIZE,SQ_SIZE,SQ_SIZE))
+            else:
+                p.draw.rect(screen,colors[1],p.Rect(r*SQ_SIZE,c*SQ_SIZE,SQ_SIZE,SQ_SIZE))
+    
+    
+    
+    return screen
 
 """
 Highlight selected piece and squares it can move to
@@ -266,43 +305,7 @@ def highlight_Squares(screen,gs,validMoves,sq_selected):
         last_move = gs.moveLog[-1]
         screen.blit(s,(last_move.startcol*SQ_SIZE,last_move.startrow*SQ_SIZE))
         screen.blit(s,(last_move.endcol*SQ_SIZE,last_move.endrow*SQ_SIZE))
-        
-        
-                
-                    
-"""
-Responsible for graphics in used and displayed in the game
-"""
-def draw_Gamestate(screen,gs,validMoves,sq_selected):
-    draw_Board(screen)              #To draw the squares on the board
-    #add in piece highlighting and move suggestions
-    highlight_Squares(screen,gs,validMoves,sq_selected)
-    draw_Pieces(screen,gs.board)    #draw the pieces on top of the Board
- 
-
-"""
-Draw the squares on the board.
-"""  
-def draw_Board(screen):
-    #squares
-    '''for i in range(0,(DIMENSIONS+1)*SQ_SIZE,SQ_SIZE*2):
-        for j in range(0,(DIMENSIONS+1)*SQ_SIZE,SQ_SIZE*2):
-            p.draw.rect(screen,[255,255,200],[i,j,SQ_SIZE,SQ_SIZE])
-            p.draw.rect(screen,[50,150,50],[i,j-64,SQ_SIZE,SQ_SIZE])
-            p.draw.rect(screen,[50,150,50],[i-64,j,SQ_SIZE,SQ_SIZE])'''
-    global colors
-    colors = [[255,255,200],[50,150,50]]
-    for r in range(DIMENSIONS):
-        for c in range(DIMENSIONS):
-            if (r+c)%2==0:
-                p.draw.rect(screen,colors[0],p.Rect(r*SQ_SIZE,c*SQ_SIZE,SQ_SIZE,SQ_SIZE))
-            else:
-                p.draw.rect(screen,colors[1],p.Rect(r*SQ_SIZE,c*SQ_SIZE,SQ_SIZE,SQ_SIZE))
-    
-    
-    
-    return screen
-
+                                
 """
 Draw pieces on the board, using the current gamestate.board variable
 Also added ranks and files the remain constant on the board throughout the game
@@ -322,7 +325,35 @@ def draw_Pieces(screen,board):
         screen.blit(rank,[0,r*SQ_SIZE])
     for c in range(DIMENSIONS):
         files = font.render(s[c],True,[150,150,150])
-        screen.blit(files,[c*SQ_SIZE+54,WIDTH-18])
+        screen.blit(files,[c*SQ_SIZE+54,BOARD_WIDTH-18])
+        
+"""
+Function for displaying the MoveLog
+"""
+def draw_MoveLog(screen,gs,font):
+    moveLogrect = p.Rect(BOARD_HEIGHT,0,REFERENCE_HEIGHT,REFERENCE_WIDTH)
+    p.draw.rect(screen,[25,25,25],moveLogrect)
+    moveLog = gs.moveLog
+    moveTexts = []
+    for i in range(0,len(moveLog),2):
+        moveString = str(i//2+1)+".  "+str(moveLog[i])
+        if i+1<len(moveLog):
+            moveString += "  "+str(moveLog[i+1])
+        moveTexts.append(moveString)
+    padding = 5
+    textY = padding
+    lineSpacing = 2
+    
+    for i in range(len(moveTexts)):
+        
+        text = moveTexts[i]
+        textObject = font.render(text,True,[150,150,150])
+        textLocation = moveLogrect.move(padding,textY)
+        textY+= textObject.get_height()+lineSpacing
+        screen.blit(textObject,textLocation)
+        
+        
+        
 
 """
 Function for animating moves
